@@ -14,8 +14,11 @@ archivo_subido = st.file_uploader("Sube el archivo Excel de Evaluaciones", type=
 # Caché para lectura optimizada
 @st.cache_data
 def cargar_datos(file):
-    # AQUÍ ESTÁ EL CAMBIO CLAVE: Le decimos que lea específicamente la hoja 'BD'
     df = pd.read_excel(file, sheet_name='BD')
+    
+    # ---> LA SOLUCIÓN: Limpiar espacios invisibles en los nombres de las columnas <---
+    df.columns = df.columns.str.strip()
+    
     df['Semana'] = df['Semana'].astype(str)
     return df
 
@@ -125,7 +128,7 @@ if archivo_subido is not None:
                     st.error(f"{len(df_atipicos)} registros fuera de los rangos normales:")
                     st.dataframe(df_atipicos.sort_values(by=['Semana', columna_valor], ascending=[True, False])[columnas_reporte], use_container_width=True)
 
-    # Manejo de errores amigable si la hoja no existe o faltan columnas
+    # Manejo de errores
     except ValueError:
         st.error("❌ Error: No se encontró la pestaña llamada 'BD' en el archivo Excel. Asegúrate de subir el archivo correcto.")
     except KeyError as e:
